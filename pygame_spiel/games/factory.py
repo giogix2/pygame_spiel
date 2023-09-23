@@ -1,4 +1,3 @@
-# from pygame_open_spiel.games.tic_tac_toe import TicTacToe
 from pygame_spiel.games import *
 
 DICT_GAMES = {"tic_tac_toe": "TicTacToe", "breakthrough": "Breakthrough"}

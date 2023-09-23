@@ -15,7 +15,7 @@ setup(
     description="Pygame spiel",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/giogix2/pygame_open_spiel",
+    url="https://github.com/giogix2/pygame_spiel",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
