@@ -1,0 +1,5 @@
+# python package requirements
+include requirements.txt
+
+# Sprites
+recursive-include pygame_spiel/images *
