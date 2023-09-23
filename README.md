@@ -22,9 +22,8 @@ Run Pygame_spiel with:
 ```bash
 pygame_spiel
 ```
-
-![menu](https://github.com/giogix2/pygame_spiel/assets/5859539/10f4f6ba-7d96-4586-8966-e52050a16343)
+![menu](https://github.com/giogix2/pygame_spiel/assets/5859539/aa0f41c8-a619-489d-bbef-592555fb8afa)
 
 Use your mouse to select the cell (tic tac toe) or select pawn and destination cell (breakthrough).
 
-![breakthrough_tic_tac_toe](https://github.com/giogix2/pygame_spiel/assets/5859539/3c084532-b910-429f-ac98-9b8d4c196299)
+![breakthrough_tic_tac_toe](https://github.com/giogix2/pygame_spiel/assets/5859539/4d7abe5e-355c-485b-a0a8-171ea1432c10)
