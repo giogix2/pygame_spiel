@@ -1,2 +1,9 @@
 Pipfile
 *.DS_Store
+
+# Build files
+build/
+build*/
+cmake-build-*/
+dist/
+pygame_spiel.egg-info/
