@@ -9,7 +9,7 @@ def read_requirements():
 
 setup(
     name="pygame_spiel",
-    version="0.1.0",
+    version="0.1.1",
     author="Giovanni Ortolani",
     author_email="giovorto@pm.me",
     description="Pygame spiel",
