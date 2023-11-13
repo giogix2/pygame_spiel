@@ -38,6 +38,11 @@ class Breakthrough(base.Game):
 
         self._selected_row, self._selected_col = None, None
 
+        # Next two lists are from (lines 36-40):
+        # https://github.com/google-deepmind/open_spiel/blob/efa004d8c5f5088224e49fdc198c5d74b6b600d0/open_spiel/games/breakthrough.cc#L36
+        self._k_dir_row_offsets = [1, 1, 1, -1, -1, -1]
+        self._k_dir_col_offsets = [-1, 0, 1, -1, 0, 1]
+
     def _convert_mouse_position_to_grid(
         self, mouse_pos: t.Tuple[int, int]
     ) -> t.Tuple[int, int]:
@@ -118,6 +123,71 @@ class Breakthrough(base.Game):
             dir = 7  # Invalid direction
         return dir
 
+    def _unrank_action_mixed_base(self, action: int) -> t.List[int]:
+        """
+        Converts the action value to a the position and values used to get the position and direction of the pawn.
+
+        Example: _unrank_action_mixed_base(2) = [1, 0, 1, 0]
+        Example: _unrank_action_mixed_base(100) = [1, 0, 2, 0]
+
+        This function is currently not used, but it's useful for debugging purposes, which is why is kept in this file.
+        This function is a copy of:
+        https://github.com/google-deepmind/open_spiel/blob/efa004d8c5f5088224e49fdc198c5d74b6b600d0/open_spiel/spiel_utils.cc#L69
+
+        Parameters:
+            action (int): player's action.
+
+        Returns:
+            digits (list): list containing 4 values
+        """
+
+        action_bases = [self._n_rows, self._n_rows, self._n_directions, 2]
+        digits = [0] * len(action_bases)
+        for i in range(len(action_bases) - 1, -1, -1):
+            digits[i] = action % action_bases[i]
+            action //= action_bases[i]
+        return digits
+
+    def _action_to_string(self, action: int) -> str:
+        """
+        Converts the action value to a string representing start and end position.
+
+        Example: _action_to_string(2) = a8a7
+        Example: _action_to_string(100) = a7b6
+
+        This function is currently not used, but it's useful for debugging purposes, which is why is kept in this file.
+        This function is a copy of:
+        https://github.com/google-deepmind/open_spiel/blob/efa004d8c5f5088224e49fdc198c5d74b6b600d0/open_spiel/games/breakthrough.cc#L196
+
+        Parameters:
+            action (int): player's action.
+
+        Returns:
+            digits (str): start/end position of the player
+        """
+
+        values = self._unrank_action_mixed_base(action)
+        r1, c1 = values[0], values[1]
+        dir = values[2]
+        capture = values[3] == 1
+        r2 = r1 + self._k_dir_row_offsets[dir]
+        c2 = c1 + self._k_dir_col_offsets[dir]
+
+        def col_label(col: int) -> str:
+            return chr(ord("a") + col)
+
+        def row_label(row: int) -> str:
+            return chr(ord("1") + self._n_rows - 1 - row)
+
+        action_string = ""
+        action_string += col_label(c1)
+        action_string += row_label(r1)
+        action_string += col_label(c2)
+        action_string += row_label(r2)
+        action_string += "*" if capture else ""
+
+        return action_string
+
     def _from_action_string_to_int(
         self,
         selected_pawn_row: int,
@@ -125,11 +195,11 @@ class Breakthrough(base.Game):
         dest_row: int,
         dest_col: int,
         token: "str",
-    ):
+    ) -> int:
         """
-        Retruns the action id given token's actual and destination position.
+        Returns the action id given token's actual and destination position.
 
-        Tihs function returns the numerical action id given a selected token's
+        This function returns the numerical action id given a selected token's
         current and destination position. This is because the implementation of breakthrough
         in open_spiel represents each possible action with a unique integer id, which is uniquely
         linked to the token's current and destination position.
@@ -147,7 +217,7 @@ class Breakthrough(base.Game):
             token (str): token in the destination cell (can be ".", "w" or "b")
 
         Returns:
-            action (int): brekthrough's unique action id
+            action (int): breakthrough's unique action id
         """
 
         if abs(selected_pawn_row - dest_row) > 1:
@@ -157,10 +227,20 @@ class Breakthrough(base.Game):
         action_bases = [self._n_rows, self._n_rows, self._n_directions, 2]
 
         dir = self._get_direction(selected_pawn_col, dest_col, self._player_color)
+
+        # Black diagonal directions are 0 and 2. White diagonal directiosn are 3 and 5
+        diagonal_dir = True if dir in [0, 2, 3, 5] else False
         if dir == 7:
             # Pawns can only move in front or direct diagonal positions
             return None
-        capture = 0 if token != "b" else 1
+
+        if self._player_color == "b" and token == "w" and diagonal_dir:
+            capture = 1
+        elif self._player_color == "w" and token == "b" and diagonal_dir:
+            capture = 1
+        else:
+            capture = 0
+
         digits = [selected_pawn_row, selected_pawn_col, dir, capture]
 
         action = 0
@@ -205,11 +285,11 @@ class Breakthrough(base.Game):
             elif self._selected_row is not None and token == self._player_color:
                 self._selected_row, self._selected_col = None, None
             elif self._selected_row is not None and token != self._player_color:
-                # A paws has been selected. If no other pawn is chosen, do not change assignment.
+                # A pawn has been selected. If no other pawn is chosen, do not change assignment.
                 action = self._from_action_string_to_int(
                     self._selected_row, self._selected_col, row, col, token
                 )
-                if action is not None:
+                if action is not None and action in self._state.legal_actions():
                     self._state.apply_action(action)
                     self._bots[1].inform_action(
                         self._state, self._current_player, action
@@ -233,7 +313,6 @@ class Breakthrough(base.Game):
                 x, y = self._get_coordinates_by_position(row, col)
 
                 if token == "b":
-                    # screen.blit(pawn_black, (x, y))
                     if row == self._selected_row and col == self._selected_col:
                         self._screen.blit(self._pawn_white_selected, (x, y))
                     else:
