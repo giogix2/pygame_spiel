@@ -6,7 +6,7 @@ PygameSpiel is a [Pygame](https://www.pygame.org)-based library to play board ga
 pip install pygame_spiel
 ```
 
-## Version 0.1.1
+## Version 1.0.0
 Games currently available: 
 * Breakthrough
 * Tic Tac Toe
