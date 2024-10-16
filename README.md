@@ -1,5 +1,7 @@
 # Pygame_spiel: Pygame-based UI to play board Reinforcement Learning games from OpenSpiel
 PygameSpiel is a [Pygame](https://www.pygame.org)-based library to play board games from the library [OpenSpiel](https://github.com/google-deepmind/open_spiel) against AI algorithms.
+
+
 Pygame_spiel provides a graphical UI interface to play games from the library [OpenSpiel](https://github.com/google-deepmind/open_spiel). While by default Pygame_spiel allows to play against a few existing algorithms from OpenSpiel, it also enables users who are working with OpenSpiel to quickly test new algorithms. With this in mind, Pygame_spiel offers the possibility to plugin new BOTs in runtime for quick testing.
 
 ## Index

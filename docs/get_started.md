@@ -32,9 +32,15 @@ This class definition can be saved in a .py file in any folder.
 
 ### Register the  class
 After launching Pygame_spiel, the user can provide the path the the Python file containing the Bot definition, which will be loaded and visible in the list of Bots (called "Opponent" in the main menu). In the *Module* dropdown menu navigate through the filesystem and select the Python file
+
 ![alt text](images/module_dropdown_1.png)
+
 After selecting the file, the file name will be visualized below the dropdown menu as in the next image. Also, if the Python file contains classes inherited from pyspiel.Bot, the class names will be printed next to the file name. This information can be used to know if the Bots have been correctly registered or not. If no names are printed after the text "new Bots:", the classes have not been correctly registered.
+
 ![alt text](images/module_dropdown_2.png)
+
 If the new classes are correctly registered, the class names will appear in the *Opponent* dropdown menu, after the Bots which are already available in Pygame_spiel by default (see the new class "Dummy" in the image below).
+
 ![alt text](images/module_dropdown_3.png)
+
 After this, just click on *Play*!.
