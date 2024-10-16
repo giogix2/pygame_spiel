@@ -1,63 +1,10 @@
-import numpy as np
 import gdown
-import pathlib
+from pathlib import Path
+import importlib.util
 import shutil
 import os
 
 import pyspiel
-from pygame_spiel.bots import dqn
-
-from open_spiel.python.bots import uniform_random, human
-from open_spiel.python.algorithms import mcts
-
-
-def init_bot(
-    bot_type: str, game: pyspiel.Game, player_id: int, breakpoint_dir: str = None
-) -> None:
-    """
-    Returns a bot of type bot_type for the player specified by player_id.
-
-    Parameters:
-        bot_type (str): Bot type (mcts, random or dqn)
-        game (pyspiel.Game): open_spiel game
-        player_id (int): id of the player that the bot will be driving
-        breakpoint_dir (str): Path to the DQN weigths (optional)
-
-    Returns:
-        None
-    """
-    rng = np.random.RandomState(42)
-    if bot_type == "mcts":
-        utc = 2  # UCT's exploration constant
-        max_simulations = 1000
-        rollout_count = 1
-        evaluator = mcts.RandomRolloutEvaluator(rollout_count, rng)
-        solve = True  # Whether to use MCTS-Solver.
-        verbose = False
-        bot = mcts.MCTSBot(
-            game,
-            utc,
-            max_simulations,
-            evaluator,
-            random_state=rng,
-            solve=solve,
-            verbose=verbose,
-        )
-        return bot
-    if bot_type == "random":
-        bot = uniform_random.UniformRandomBot(1, rng)
-        return bot
-    if bot_type == "dqn":
-        # We need to load bots for both players, because the models have been trained
-        # using the script breakthrough_dqn.py, causing the issue reported in
-        # https://github.com/deepmind/open_spiel/issues/1104.
-        # Only the both related to the specified player is returned.
-        bot0 = dqn.DQNBot(game, player_id=0, checkpoint_dir=breakpoint_dir)
-        bot1 = dqn.DQNBot(game, player_id=1, checkpoint_dir=breakpoint_dir)
-        return bot0 if player_id == 0 else bot1
-    if bot_type == "human":
-        return human.HumanBot()
-    raise ValueError("Invalid bot type: %s" % bot_type)
 
 
 def download_weights(file_id, dest_folder):
@@ -74,11 +21,11 @@ def download_weights(file_id, dest_folder):
         None
     """
 
-    pathlib.Path(dest_folder).mkdir(parents=True, exist_ok=True)
+    Path(dest_folder).mkdir(parents=True, exist_ok=True)
     prefix = "https://drive.google.com/uc?/export=download&id="
     url = prefix + file_id
     file_name, suffix = "file", ".zip"
-    dest_file_path = pathlib.Path(dest_folder, file_name).with_suffix(suffix)
+    dest_file_path = Path(dest_folder, file_name).with_suffix(suffix)
 
     # Download the zip file containing the weights
     gdown.download(url, str(dest_file_path), quiet=False)
@@ -86,3 +33,32 @@ def download_weights(file_id, dest_folder):
     shutil.unpack_archive(dest_file_path, dest_folder)
     # Destroy the temporary zip file
     os.remove(dest_file_path)
+
+
+def register_classes(file_path: str) -> dict[str, type]:
+    """
+    Creates new classes definitions from a .py file specified as argument.
+
+    Given the path of a Python file (*.py), this function loads it as a new
+    module, and retrieves all the classes contained inside. The classes are
+    registered and returned. Only the classes for which the parent is
+    pyspiel.Bot are returned. This function is used to allow users to plugin
+    new Bots from pygame_spiel menu at runtime.
+
+    Parameters:
+        file_path (str): path to a Python file (*.py)
+
+    Returns:
+        dict[str, type]: dictionary with class name and class definition
+    """
+    registered_classes = {}
+
+    module_name = Path(file_path).stem
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    for name, obj in module.__dict__.items():
+        if isinstance(obj, type) and issubclass(obj, pyspiel.Bot):
+            registered_classes[name] = obj
+    return registered_classes

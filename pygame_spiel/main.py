@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import pygame
-import pygame_menu
-from pygame_menu import themes
 
 from pygame_spiel.games.settings import GAMES_BOTS
 from pygame_spiel.games.factory import GameFactory
@@ -18,15 +16,20 @@ def pygame_spiel():
     menu.display()
     game_name = menu.get_selected_game()
     bot_type = menu.get_selected_opponent()
+    registered_bots = menu.get_registered_bots()
 
     player_id = 0
 
+    list_available_bots = list(GAMES_BOTS[game_name].keys()) + list(
+        registered_bots.keys()
+    )
     assert (
-        bot_type in GAMES_BOTS[game_name].keys()
+        bot_type in list_available_bots
     ), f"""Bot type {bot_type} not available for game {game_name}. List of 
-        available bots: {list(GAMES_BOTS[game_name].keys())}"""
+        available bots: {list_available_bots}"""
 
     game = GameFactory.get_game(game_name, current_player=player_id)
+    game.register_bots(registered_bots)
     game.set_bots(
         bot1_type="human",
         bot1_params=None,
