@@ -46,7 +46,11 @@ class Game(metaclass=abc.ABCMeta):
         """
 
     def _init_bot(
-        self, bot_type: str, game: pyspiel.Game, player_id: int, breakpoint_dir: str = None
+        self,
+        bot_type: str,
+        game: pyspiel.Game,
+        player_id: int,
+        breakpoint_dir: str = None,
     ) -> None:
         """
         Returns a bot of type bot_type for the player specified by player_id.
@@ -60,7 +64,12 @@ class Game(metaclass=abc.ABCMeta):
         Returns:
             None
         """
-        if bot_type not in list(self._registered_bots.keys()) + ['mcts', 'random', 'dqn', 'human']:
+        if bot_type not in list(self._registered_bots.keys()) + [
+            "mcts",
+            "random",
+            "dqn",
+            "human",
+        ]:
             ValueError("Invalid bot type: %s" % bot_type)
         rng = np.random.RandomState(42)
         if bot_type == "mcts":
@@ -113,7 +122,7 @@ class Game(metaclass=abc.ABCMeta):
 
         for i, bot_type in enumerate([bot1_type, bot2_type]):
             bot_breakpoint_dir = None
-            if bot_type in ["dqn"]: # TODO move next code inside DQN bot definition
+            if bot_type in ["dqn"]:  # TODO move next code inside DQN bot definition
                 breakpoint_dest_dir = Path(
                     self._package_path,
                     "pygame_spiel/data/breakpoints",
@@ -137,11 +146,11 @@ class Game(metaclass=abc.ABCMeta):
 
     def register_bots(self, registered_bots: dict[str, type]):
         """
-        Register a new Bot class definition. 
+        Register a new Bot class definition.
         This is a class which is loaded at runtime from the pygame_spiel menu.
 
         Parameters:
-            registered_bots (dict[str, type]): dictionary with class names 
+            registered_bots (dict[str, type]): dictionary with class names
             and definitions
         """
         self._registered_bots = registered_bots

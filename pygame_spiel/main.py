@@ -20,7 +20,9 @@ def pygame_spiel():
 
     player_id = 0
 
-    list_available_bots = list(GAMES_BOTS[game_name].keys())+list(registered_bots.keys())
+    list_available_bots = list(GAMES_BOTS[game_name].keys()) + list(
+        registered_bots.keys()
+    )
     assert (
         bot_type in list_available_bots
     ), f"""Bot type {bot_type} not available for game {game_name}. List of 

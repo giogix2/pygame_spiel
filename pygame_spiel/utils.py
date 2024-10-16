@@ -6,6 +6,7 @@ import os
 
 import pyspiel
 
+
 def download_weights(file_id, dest_folder):
     """
     Download breakpoints from Google Drive. This function downloads the zip
@@ -37,7 +38,7 @@ def download_weights(file_id, dest_folder):
 def register_classes(file_path: str) -> dict[str, type]:
     """
     Creates new classes definitions from a .py file specified as argument.
-    
+
     Given the path of a Python file (*.py), this function loads it as a new
     module, and retrieves all the classes contained inside. The classes are
     registered and returned. Only the classes for which the parent is
@@ -46,7 +47,7 @@ def register_classes(file_path: str) -> dict[str, type]:
 
     Parameters:
         file_path (str): path to a Python file (*.py)
-    
+
     Returns:
         dict[str, type]: dictionary with class name and class definition
     """

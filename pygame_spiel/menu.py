@@ -34,7 +34,7 @@ class Menu:
             items=self._get_files_and_folders(self._current_path),
             onchange=self._select_module,
         )
-        self._mainmenu.add.label('', label_id='path_display', max_char=-1, font_size=20)
+        self._mainmenu.add.label("", label_id="path_display", max_char=-1, font_size=20)
         self._menu_dropselect_game = self._mainmenu.add.dropselect(
             "Game :",
             [("breakthrough", 1), ("tic_tac_toe", 2)],
@@ -42,10 +42,10 @@ class Menu:
             default=0,
         )
         self._menu_dropselect_opponent = self._mainmenu.add.dropselect(
-            "Opponent :", 
-            self._list_opponents, 
-            onchange=self._select_opponent, 
-            default=0
+            "Opponent :",
+            self._list_opponents,
+            onchange=self._select_opponent,
+            default=0,
         )
         self._mainmenu.add.button("Play", self._start_game)
 
@@ -55,9 +55,9 @@ class Menu:
         """Run the Pygame display function which visualizes the menu on screen."""
         self._mainmenu.mainloop(self._menu_surface)
 
-    def _get_files_and_folders(self, path: str = '.') -> list[tuple[str, str]]:
+    def _get_files_and_folders(self, path: str = ".") -> list[tuple[str, str]]:
         """
-        Returns a list of files and folders in a given directory. 
+        Returns a list of files and folders in a given directory.
         The returned list is visualized in the main menu. The list contains
         repeating values (e.g., (item, item)), which though have redundant
         information, it's the supported format in Pygame-menu droplists.
@@ -68,15 +68,15 @@ class Menu:
         Returns:
             list[tuple[str, str]]: list containing files and folder names
         """
-        items = ['..']  # Add option to go up one directory
+        items = [".."]  # Add option to go up one directory
         items.extend(sorted(os.listdir(path)))
         return [(item, item) for item in items]
-    
+
     def _update_modules_dropdown(self):
         """Helper function to visualize new information in the modules dropdown."""
         items = self._get_files_and_folders(self._current_path)
         self._menu_dropselect_module.update_items(items)
-    
+
     def _select_module(self, selected_value: tuple[tuple[str, str], int], *args):
         """
         Callback function for the Dropselect menu used to select modules.
@@ -86,23 +86,25 @@ class Menu:
         """
         selected_item = selected_value[0][0]
         self._bot_path = None
-        self._mainmenu.get_widget('path_display').set_title("")
+        self._mainmenu.get_widget("path_display").set_title("")
 
-        if selected_item == '..':
+        if selected_item == "..":
             self._current_path = os.path.dirname(self._current_path)
         else:
             new_path = os.path.join(self._current_path, selected_item)
             if os.path.isdir(new_path):
                 self._current_path = new_path
-            if new_path.endswith('.py'):
+            if new_path.endswith(".py"):
                 self._bot_path = new_path
                 file_name = Path(new_path).name
                 self._registered_bots = register_classes(file_path=self._bot_path)
                 for class_name in self._registered_bots.keys():
                     self._list_opponents.append((class_name, class_name))
                 self._menu_dropselect_opponent.update_items(self._list_opponents)
-                str_registered_bots = ', '.join(self._registered_bots.keys())
-                self._mainmenu.get_widget('path_display').set_title(f"Selected file: {file_name} (new Bots: {str_registered_bots})")
+                str_registered_bots = ", ".join(self._registered_bots.keys())
+                self._mainmenu.get_widget("path_display").set_title(
+                    f"Selected file: {file_name} (new Bots: {str_registered_bots})"
+                )
         self._update_modules_dropdown()
 
     def _get_game_available_bots(self, game: str) -> t.List:
@@ -164,7 +166,7 @@ class Menu:
             selected_opponent_type (str): opponent's type selected in the menu
         """
         return self._selected_opponent_type
-    
+
     def get_selected_bot_file(self) -> str:
         """
         Getter which returns path to a file containing a new Bot definition.
@@ -173,7 +175,7 @@ class Menu:
             bot_path (str): path to a .py file containing a Bot definition
         """
         return self._bot_path
-    
+
     def get_registered_bots(self) -> dict:
         """
         Getter which returns the bots registered from custom modules.
