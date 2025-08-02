@@ -1,7 +1,6 @@
 import pygame
 import typing as t
 import math
-import site
 from pathlib import Path
 
 from pygame_spiel.games import base
@@ -13,21 +12,22 @@ class Breakthrough(base.Game):
 
         self._player_color = "b" if self._current_player == 0 else "w"
         self._n_rows, self._n_cols, self._n_directions = 8, 8, 6
-        package_path = site.getsitepackages()[0]
+
+        # Get the package directory (works for both editable and regular installs)
+        package_dir = Path(__file__).parent.parent
 
         # Load images
         self._background = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/chess_board.png"
+            package_dir / "images/breakthrough/chess_board.png"
         ).convert_alpha()
         self._pawn_white = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/pawn_white.png"
+            package_dir / "images/breakthrough/pawn_white.png"
         ).convert_alpha()
         self._pawn_white_selected = pygame.image.load(
-            Path(package_path)
-            / "pygame_spiel/images/breakthrough/pawn_white_selected.png"
+            package_dir / "images/breakthrough/pawn_white_selected.png"
         ).convert_alpha()
         self._pawn_black = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/pawn_black.png"
+            package_dir / "images/breakthrough/pawn_black.png"
         ).convert_alpha()
 
         self._pawn_white = pygame.transform.scale(self._pawn_white, (95, 95))
@@ -274,34 +274,45 @@ class Breakthrough(base.Game):
         return x, y
 
     def play(self, mouse_pos, mouse_pressed):
+        # Check if game is over or current_player is invalid
         if (
-            (self._current_player == 0 and self._player_color == "b")
-            or (self._current_player == 1 and self._player_color == "w")
-        ) and (mouse_pressed[0]):
-            row, col = self._convert_mouse_position_to_grid(mouse_pos)
-            token = self._state_string[self._get_token_by_position(row, col)]
-            if self._selected_row is None and token == self._player_color:
-                self._selected_row, self._selected_col = row, col
-            elif self._selected_row is not None and token == self._player_color:
-                self._selected_row, self._selected_col = None, None
-            elif self._selected_row is not None and token != self._player_color:
-                # A pawn has been selected. If no other pawn is chosen, do not change assignment.
-                action = self._from_action_string_to_int(
-                    self._selected_row, self._selected_col, row, col, token
-                )
-                if action is not None and action in self._state.legal_actions():
-                    self._state.apply_action(action)
-                    self._bots[1].inform_action(
-                        self._state, self._current_player, action
-                    )
-                    self._selected_row, self._selected_col = None, None
-        elif (self._current_player == 1 and self._player_color == "b") or (
-            self._current_player == 0 and self._player_color == "w"
+            self._state.is_terminal()
+            or self._current_player < 0
+            or self._current_player >= len(self._bots)
         ):
-            action = self._bots[1].step(self._state)
-            self._state.apply_action(action)
+            pass  # Game is over, just do visualization
+        else:
+            current_bot = self._bots[self._current_player]
+            is_human_player = str(type(current_bot).__name__) == "HumanBot"
+
+            # Determine if this player should use mouse input based on their color
+            player_uses_mouse = (
+                self._current_player == 0 and self._player_color == "b"
+            ) or (self._current_player == 1 and self._player_color == "w")
+
+            if is_human_player and player_uses_mouse and mouse_pressed[0]:
+                row, col = self._convert_mouse_position_to_grid(mouse_pos)
+                token = self._state_string[self._get_token_by_position(row, col)]
+                if self._selected_row is None and token == self._player_color:
+                    self._selected_row, self._selected_col = row, col
+                elif self._selected_row is not None and token == self._player_color:
+                    self._selected_row, self._selected_col = None, None
+                elif self._selected_row is not None and token != self._player_color:
+                    # A pawn has been selected. If no other pawn is chosen, do not change assignment.
+                    action = self._from_action_string_to_int(
+                        self._selected_row, self._selected_col, row, col, token
+                    )
+                    if action is not None and action in self._state.legal_actions():
+                        self._execute_move(action)
+                        self._selected_row, self._selected_col = None, None
+            elif not is_human_player:
+                # Current player is a bot, let it make a move
+                action = current_bot.step(self._state)
+                if action in self._state.legal_actions():
+                    self._execute_move(action)
 
         self._current_player = self._state.current_player()
+        self._player_color = "b" if self._current_player == 0 else "w"
         self._state_string = self._state.to_string()
 
         # Visualization
@@ -322,3 +333,18 @@ class Breakthrough(base.Game):
                         self._screen.blit(self._pawn_white_selected, (x, y))
                     else:
                         self._screen.blit(self._pawn_white, (x, y))
+
+    def _execute_move(self, action):
+        """
+        Execute a move and update the game state.
+
+        Args:
+            action (int): The action to apply to the game state.
+        """
+        self._state.apply_action(action)
+
+        # Inform the other player about this move
+        other_player = 1 - self._current_player
+        self._bots[other_player].inform_action(
+            self._state, self._current_player, action
+        )

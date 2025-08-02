@@ -20,6 +20,6 @@ Games currently available:
 * Tic Tac Toe
 
 AI algorithms available:
-* mcts, DQN (currently only for breakthrough)
+* mcts
 
 **more to come...**

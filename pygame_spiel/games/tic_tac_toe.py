@@ -1,6 +1,5 @@
 import typing as t
 import pygame
-import site
 from pathlib import Path
 
 from pygame_spiel.games import base
@@ -22,10 +21,11 @@ class TicTacToe(base.Game):
         self._line_v2_x_start, self._line_v2_y_start = 400, 0
         self._line_v2_x_end, self._line_v2_y_end = 400, 600
 
-        package_path = site.getsitepackages()[0]
+        # Get the package directory (works for both editable and regular installs)
+        package_dir = Path(__file__).parent.parent
 
         self._x_image = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/tic_tac_toe/x_image.png"
+            package_dir / "images/tic_tac_toe/x_image.png"
         ).convert_alpha()
 
         self._quadrant_pos_map_x = [
@@ -110,19 +110,25 @@ class TicTacToe(base.Game):
         self._screen.blit(img, (x, y))
 
     def play(self, mouse_pos, mouse_pressed):
-        if self._current_player == 0 and (mouse_pressed[0]):
-            action = self._get_quadrant(mouse_pos[0], mouse_pos[1])
-            if self._quadrant_pos_map_x[action] not in self._list_x_pos:
-                self._state.apply_action(action)
-                self._bots[1].inform_action(self._state, self._current_player, action)
-                if self._quadrant_pos_map_x[action] not in self._list_x_pos:
-                    self._list_x_pos.append(self._quadrant_pos_map_x[action])
-        elif self._current_player == 1:
-            action = self._bots[1].step(self._state)
-            if self._quadrant_pos_map_circle[action] not in self._list_o_pos:
-                self._state.apply_action(action)
-                if self._quadrant_pos_map_circle[action] not in self._list_o_pos:
-                    self._list_o_pos.append(self._quadrant_pos_map_circle[action])
+        # Check if game is over or current_player is invalid
+        if (
+            self._state.is_terminal()
+            or self._current_player < 0
+            or self._current_player >= len(self._bots)
+        ):
+            pass  # Game is over, just do visualization
+        else:
+            current_bot = self._bots[self._current_player]
+            is_human_player = str(type(current_bot).__name__) == "HumanBot"
+
+            if is_human_player and mouse_pressed[0]:
+                action = self._get_quadrant(mouse_pos[0], mouse_pos[1])
+                if action in self._state.legal_actions():
+                    self._execute_move(action)
+            elif not is_human_player:
+                action = current_bot.step(self._state)
+                if action in self._state.legal_actions():
+                    self._execute_move(action)
 
         self._current_player = self._state.current_player()
 
@@ -171,3 +177,26 @@ class TicTacToe(base.Game):
                 self._draw_text(f"Winner: player 0", (0, 0, 0), 220, 300)
             else:
                 self._draw_text(f"Winner: player 1", (0, 0, 0), 220, 300)
+
+    def _execute_move(self, action):
+        """
+        Execute a move and update both game state and visualization.
+
+        Args:
+            action (int): The action to apply, corresponding to the move index (0-8).
+        """
+        self._state.apply_action(action)
+
+        # Inform the other player
+        other_player = 1 - self._current_player
+        self._bots[other_player].inform_action(
+            self._state, self._current_player, action
+        )
+
+        # Update visualization lists
+        if self._current_player == 0:
+            if self._quadrant_pos_map_x[action] not in self._list_x_pos:
+                self._list_x_pos.append(self._quadrant_pos_map_x[action])
+        else:  # Player 1
+            if self._quadrant_pos_map_circle[action] not in self._list_o_pos:
+                self._list_o_pos.append(self._quadrant_pos_map_circle[action])

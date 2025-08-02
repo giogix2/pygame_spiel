@@ -1,5 +1,6 @@
 Pipfile
 *.DS_Store
+*.pyc
 
 # Build files
 build/

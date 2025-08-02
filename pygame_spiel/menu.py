@@ -16,10 +16,14 @@ class Menu:
         pygame.display.set_caption("Pygame Open Spiel")
 
         self._selected_game = "breakthrough"
-        self._selected_opponent_type = "mcts"
-        self._list_opponent_types = self._get_game_available_bots(self._selected_game)
-        self._list_opponents = [
-            (opp_type, i) for i, opp_type in enumerate(self._list_opponent_types)
+        # Store selections for both players
+        self._selected_player1_type = "human"
+        self._selected_player2_type = "mcts"
+        self._list_player_types = self._get_game_available_bots_with_human(
+            self._selected_game
+        )
+        self._list_players = [
+            (player_type, i) for i, player_type in enumerate(self._list_player_types)
         ]
         self._current_path = os.getcwd()
         self._bot_path = None
@@ -35,17 +39,29 @@ class Menu:
             onchange=self._select_module,
         )
         self._mainmenu.add.label("", label_id="path_display", max_char=-1, font_size=20)
+        # Create dynamic game list from GAMES_BOTS
+        game_items = [
+            (game_name, i) for i, game_name in enumerate(GAMES_BOTS.keys(), 1)
+        ]
         self._menu_dropselect_game = self._mainmenu.add.dropselect(
             "Game :",
-            [("breakthrough", 1), ("tic_tac_toe", 2)],
+            game_items,
             onchange=self._select_game,
             default=0,
         )
-        self._menu_dropselect_opponent = self._mainmenu.add.dropselect(
-            "Opponent :",
-            self._list_opponents,
-            onchange=self._select_opponent,
-            default=0,
+        # Add dropdown for Player 1
+        self._menu_dropselect_player1 = self._mainmenu.add.dropselect(
+            "Player 1 :",
+            self._list_players,
+            onchange=lambda selected, *args: self._select_player(1, selected),
+            default=0,  # Default to "human"
+        )
+        # Add dropdown for Player 2
+        self._menu_dropselect_player2 = self._mainmenu.add.dropselect(
+            "Player 2 :",
+            self._list_players,
+            onchange=lambda selected, *args: self._select_player(2, selected),
+            default=1,  # Default to "mcts" (second item)
         )
         self._mainmenu.add.button("Play", self._start_game)
 
@@ -99,8 +115,9 @@ class Menu:
                 file_name = Path(new_path).name
                 self._registered_bots = register_classes(file_path=self._bot_path)
                 for class_name in self._registered_bots.keys():
-                    self._list_opponents.append((class_name, class_name))
-                self._menu_dropselect_opponent.update_items(self._list_opponents)
+                    self._list_players.append((class_name, class_name))
+                self._menu_dropselect_player1.update_items(self._list_players)
+                self._menu_dropselect_player2.update_items(self._list_players)
                 str_registered_bots = ", ".join(self._registered_bots.keys())
                 self._mainmenu.get_widget("path_display").set_title(
                     f"Selected file: {file_name} (new Bots: {str_registered_bots})"
@@ -110,7 +127,7 @@ class Menu:
     def _get_game_available_bots(self, game: str) -> t.List:
         """
         Returns the list of available bots for a specified game.
-        Example: _get_game_available_bots('breaktrhough') -> ['mcts', 'dqn']
+        Example: _get_game_available_bots('breaktrhough') -> ['mcts']
 
         Parameters:
             game (str): selected game
@@ -119,31 +136,49 @@ class Menu:
         list_bot_types = list(dict_game_info.keys())
         return list_bot_types
 
-    def _select_game(self, game: str, game_index: int):
+    def _get_game_available_bots_with_human(self, game: str) -> t.List:
+        """
+        Returns the list of available bots for a specified game, including "human".
+        Example: _get_game_available_bots_with_human('breaktrhough') -> ['human', 'mcts']
+
+        Parameters:
+            game (str): selected game
+        """
+        list_bot_types = self._get_game_available_bots(game)
+        return ["human"] + list_bot_types
+
+    def _select_game(self, game: str, *args):
         """
         Callback function for the Dropselect menu used to select the game.
 
         Parameters:
             game (str): game selected in the drop-select menu
-            game_index (int): index of the selected game
+            *args: additional arguments passed by pygame_menu (unused)
         """
         self._selected_game = game[0][0]
-        self._list_opponent_types = self._get_game_available_bots(self._selected_game)
+        self._list_player_types = self._get_game_available_bots_with_human(
+            self._selected_game
+        )
 
         drop_select_items = [
-            (opp_type, i) for i, opp_type in enumerate(self._list_opponent_types)
+            (player_type, i) for i, player_type in enumerate(self._list_player_types)
         ]
-        self._menu_dropselect_opponent.update_items(drop_select_items)
+        self._menu_dropselect_player1.update_items(drop_select_items)
+        self._menu_dropselect_player2.update_items(drop_select_items)
 
-    def _select_opponent(self, bot_type: str, opp_index: int):
+    def _select_player(self, player_num: int, player_type: str):
         """
-        Callback function for the Dropselect menu used to select the opponent's Bot type.
+        Callback function for the Dropselect menu used to select a player's Bot type.
 
         Parameters:
-            bot_type (str): opponent type selected in the drop-select menu
-            opp_index (int): index of the selected opponent type
+            player_num (int): player number (1 or 2)
+            player_type (str): player type selected in the drop-select menu
         """
-        self._selected_opponent_type = bot_type[0][0]
+        selected_type = player_type[0][0]
+        if player_num == 1:
+            self._selected_player1_type = selected_type
+        elif player_num == 2:
+            self._selected_player2_type = selected_type
 
     def _start_game(self):
         """Callback function used when the button Play is selected, which turns off the menu."""
@@ -158,14 +193,22 @@ class Menu:
         """
         return self._selected_game
 
-    def get_selected_opponent(self) -> str:
+    def get_selected_player(self, player_num: int) -> str:
         """
-        Getter which returns the current selected opponent's Bot type.
+        Getter which returns the current selected player's Bot type.
+
+        Parameters:
+            player_num (int): player number (1 or 2)
 
         Returns:
-            selected_opponent_type (str): opponent's type selected in the menu
+            selected_player_type (str): Player's type selected in the menu
         """
-        return self._selected_opponent_type
+        if player_num == 1:
+            return self._selected_player1_type
+        elif player_num == 2:
+            return self._selected_player2_type
+        else:
+            raise ValueError(f"Invalid player number: {player_num}. Must be 1 or 2.")
 
     def get_selected_bot_file(self) -> str:
         """

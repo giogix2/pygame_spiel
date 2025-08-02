@@ -15,27 +15,30 @@ def pygame_spiel():
     menu = Menu()
     menu.display()
     game_name = menu.get_selected_game()
-    bot_type = menu.get_selected_opponent()
+    player1_type = menu.get_selected_player(1)
+    player2_type = menu.get_selected_player(2)
     registered_bots = menu.get_registered_bots()
 
     player_id = 0
 
-    list_available_bots = list(GAMES_BOTS[game_name].keys()) + list(
-        registered_bots.keys()
+    list_available_bots = (
+        ["human"] + list(GAMES_BOTS[game_name].keys()) + list(registered_bots.keys())
     )
+
+    # Validate both player types
     assert (
-        bot_type in list_available_bots
-    ), f"""Bot type {bot_type} not available for game {game_name}. List of 
+        player1_type in list_available_bots
+    ), f"""Bot type {player1_type} not available for game {game_name}. List of 
+        available bots: {list_available_bots}"""
+
+    assert (
+        player2_type in list_available_bots
+    ), f"""Bot type {player2_type} not available for game {game_name}. List of 
         available bots: {list_available_bots}"""
 
     game = GameFactory.get_game(game_name, current_player=player_id)
     game.register_bots(registered_bots)
-    game.set_bots(
-        bot1_type="human",
-        bot1_params=None,
-        bot2_type=bot_type,
-        bot2_params=None,
-    )
+    game.set_bots(bot1_type=player1_type, bot2_type=player2_type)
 
     done = False
     clock = pygame.time.Clock()

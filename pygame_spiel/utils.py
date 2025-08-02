@@ -1,38 +1,7 @@
-import gdown
 from pathlib import Path
 import importlib.util
-import shutil
-import os
 
 import pyspiel
-
-
-def download_weights(file_id, dest_folder):
-    """
-    Download breakpoints from Google Drive. This function downloads the zip
-    file containing the weights, un-compress it in a specified folder and
-    delete the temporary zip file.
-
-    Parameters:
-        file_id (str): Google Drive file id
-        dest_folder (str): folder where the breakpoints are saved
-
-    Returns:
-        None
-    """
-
-    Path(dest_folder).mkdir(parents=True, exist_ok=True)
-    prefix = "https://drive.google.com/uc?/export=download&id="
-    url = prefix + file_id
-    file_name, suffix = "file", ".zip"
-    dest_file_path = Path(dest_folder, file_name).with_suffix(suffix)
-
-    # Download the zip file containing the weights
-    gdown.download(url, str(dest_file_path), quiet=False)
-    # Uncompress the zip file in dest_folder
-    shutil.unpack_archive(dest_file_path, dest_folder)
-    # Destroy the temporary zip file
-    os.remove(dest_file_path)
 
 
 def register_classes(file_path: str) -> dict[str, type]:
