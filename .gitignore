@@ -8,3 +8,5 @@ build*/
 cmake-build-*/
 dist/
 pygame_spiel.egg-info/
+
+pygame_spiel/images/hive/svg_files/*

@@ -1,6 +1,10 @@
 from pygame_spiel.games import *
 
-DICT_GAMES = {"tic_tac_toe": "TicTacToe", "breakthrough": "Breakthrough"}
+DICT_GAMES = {
+    "tic_tac_toe": "TicTacToe",
+    "breakthrough": "Breakthrough",
+    "hive": "Hive",
+}
 
 
 class GameFactory:
