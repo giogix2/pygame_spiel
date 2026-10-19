@@ -1,7 +1,5 @@
 import typing as t
 import pygame
-import site
-from pathlib import Path
 
 from pygame_spiel.games import base
 
@@ -22,11 +20,7 @@ class TicTacToe(base.Game):
         self._line_v2_x_start, self._line_v2_y_start = 400, 0
         self._line_v2_x_end, self._line_v2_y_end = 400, 600
 
-        package_path = site.getsitepackages()[0]
-
-        self._x_image = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/tic_tac_toe/x_image.png"
-        ).convert_alpha()
+        self._x_image = self._load_image("tic_tac_toe/x_image.png")
 
         self._quadrant_pos_map_x = [
             (20, 20),

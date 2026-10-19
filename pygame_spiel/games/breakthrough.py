@@ -1,8 +1,6 @@
 import pygame
 import typing as t
 import math
-import site
-from pathlib import Path
 
 from pygame_spiel.games import base
 
@@ -13,22 +11,12 @@ class Breakthrough(base.Game):
 
         self._player_color = "b" if self._current_player == 0 else "w"
         self._n_rows, self._n_cols, self._n_directions = 8, 8, 6
-        package_path = site.getsitepackages()[0]
 
         # Load images
-        self._background = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/chess_board.png"
-        ).convert_alpha()
-        self._pawn_white = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/pawn_white.png"
-        ).convert_alpha()
-        self._pawn_white_selected = pygame.image.load(
-            Path(package_path)
-            / "pygame_spiel/images/breakthrough/pawn_white_selected.png"
-        ).convert_alpha()
-        self._pawn_black = pygame.image.load(
-            Path(package_path) / "pygame_spiel/images/breakthrough/pawn_black.png"
-        ).convert_alpha()
+        self._background = self._load_image("breakthrough/chess_board.png")
+        self._pawn_white = self._load_image("breakthrough/pawn_white.png")
+        self._pawn_white_selected = self._load_image("breakthrough/pawn_white_selected.png")
+        self._pawn_black = self._load_image("breakthrough/pawn_black.png")
 
         self._pawn_white = pygame.transform.scale(self._pawn_white, (95, 95))
         self._pawn_white_selected = pygame.transform.scale(

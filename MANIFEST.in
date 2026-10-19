@@ -1,5 +1,5 @@
-# python package requirements
-include requirements.txt
-
-# Sprites
-recursive-include pygame_spiel/images *
+include LICENSE AGENTS.md CONTRIBUTING.md requirements-test.txt main.py
+include .github/workflows/checks.yml
+recursive-include pygame_spiel/images *.png
+recursive-include docs *.md *.png
+recursive-include tests *.py

@@ -1,14 +1,14 @@
 import abc
 import pygame
-import pyspiel
+try:
+    import pyspiel
+except ImportError as exc:
+    raise ImportError("Install pygame_spiel[spiel] or provide a compatible local OpenSpiel 1.3 build") from exc
 import typing as t
-import site
-from pathlib import Path
-import os
 import numpy as np
 
-from pygame_spiel.games.settings import SCREEN_SIZE, BREAKPOINTS_DRIVE_IDS
-from pygame_spiel.utils import download_weights
+from pygame_spiel.games.settings import SCREEN_SIZE
+from pygame_spiel.resources import ModelPaths, asset, user_path
 from pygame_spiel.bots import dqn
 
 from open_spiel.python.bots import uniform_random, human
@@ -29,8 +29,11 @@ class Game(metaclass=abc.ABCMeta):
         self._screen = pygame.display.set_mode(SCREEN_SIZE[name])
         pygame.display.set_caption(name)
 
-        self._package_path = site.getsitepackages()[0]
         self._registered_bots = []
+
+    def _load_image(self, name):
+        with asset(name).open("rb") as stream:
+            return pygame.image.load(stream, name).convert_alpha()
 
     @abc.abstractmethod
     def play(
@@ -120,25 +123,17 @@ class Game(metaclass=abc.ABCMeta):
         """
         self._bots = []
 
-        for i, bot_type in enumerate([bot1_type, bot2_type]):
+        for i, (bot_type, params) in enumerate([(bot1_type, bot1_params), (bot2_type, bot2_params)]):
             bot_breakpoint_dir = None
-            if bot_type in ["dqn"]:  # TODO move next code inside DQN bot definition
-                breakpoint_dest_dir = Path(
-                    self._package_path,
-                    "pygame_spiel/data/breakpoints",
-                    bot_type,
-                    self._name,
-                )
-                file_id = BREAKPOINTS_DRIVE_IDS[self._name][bot_type]
-                print(breakpoint_dest_dir)
-                if not os.path.exists(breakpoint_dest_dir):
-                    print(
-                        f"Downloading breakpoints for bot {bot_type} and game {self._name}"
+            if bot_type == "dqn":
+                if self._name != "breakthrough":
+                    raise ValueError("DQN is supported only for Breakthrough")
+                bot_breakpoint_dir = user_path(params) if params is not None else ModelPaths().breakthrough_dqn()
+                if not bot_breakpoint_dir.is_dir():
+                    raise FileNotFoundError(
+                        f"DQN checkpoint directory missing: {bot_breakpoint_dir}. "
+                        "Prepare it with python -m pygame_spiel.downloads breakthrough"
                     )
-                    download_weights(
-                        file_id=file_id, dest_folder=str(breakpoint_dest_dir)
-                    )
-                bot_breakpoint_dir = Path(breakpoint_dest_dir, "weights_default")
             bot = self._init_bot(
                 bot_type, self._game, player_id=i, breakpoint_dir=bot_breakpoint_dir
             )

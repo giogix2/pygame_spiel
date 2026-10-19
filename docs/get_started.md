@@ -1,9 +1,23 @@
 # Get started
 
 ## Play
-If the user just wants to play with the available Bots and games, the procedure is simple. After launching PygameSpiel, the main menu appears showing two dropdown menus which include the available games and Bots. Simply select the game and BOT and click play.
+Complete [installation](installation.md), then launch PygameSpiel:
+
+```bash
+pygame_spiel
+```
+
+From a source checkout, `python main.py` invokes the same menu.
+
+If the user just wants to play with the available Bots and games, the procedure is simple. After launching PygameSpiel, the main menu appears showing Game and Opponent dropdown menus which include the available games and Bots. Simply select the game and BOT and click play.
+
+For DQN, prepare the Breakthrough checkpoint as described in
+[model setup](installation.md#models-and-cache-paths) before selecting Play.
 
 ## Register a new bot
+Custom Python bot files are the developer extension for testing algorithms.
+Selecting a file executes its Python code.
+
 To dynamically add new algorithms, Pygame_spiel uses the Bot class from pyspiel as interface (pyspiel.Bot). This class is present in the OpenSpiel library, and it's currently used as template for other available algorithms in OpenSpiel (e.g., [MCTSBot](https://github.com/google-deepmind/open_spiel/blob/master/open_spiel/python/algorithms/mcts.py), [RandomUniform](https://github.com/google-deepmind/open_spiel/blob/master/open_spiel/python/bots/uniform_random.py), [Human](https://github.com/google-deepmind/open_spiel/blob/master/open_spiel/python/bots/human.py), ...). This class offers a useful format to create a generic interface between new algorithms and Pygame_spiel. The user can create a new class, which includes the logic of their new algorithm.
 
 ### Create a Bot class
@@ -21,7 +35,7 @@ class Dummy(pyspiel.Bot):
   def step(self, state):
     legal_actions = state.legal_actions(self._player_id)
     if not legal_actions:
-      return [], pyspiel.INVALID_ACTION
+      return pyspiel.INVALID_ACTION
     action = legal_actions[0] # Always choose 1st action
     return action
 ```

@@ -1,0 +1,4 @@
+# Unit doubles and no-install package builds; no graphical/neural backend.
+numpy==1.24.3
+setuptools==84.0.0
+wheel==0.48.0

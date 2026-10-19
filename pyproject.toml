@@ -1,13 +1,17 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pygame_spiel"
 version = "1.0.0"
 dependencies = [
   "pygame==2.5.0",
   "tensorflow==2.13.0",
-  "gdown==5.2.2",
   "pygame-menu==4.4.3",
+  "numpy>=1.23.5,<2",
 ]
-requires-python = ">=3.9.1"
+requires-python = ">=3.10"
 authors = [
   {name = "Giovanni Ortolani", email = "giovorto@pm.me"},
 ]
@@ -16,11 +20,11 @@ maintainers = [
 ]
 description = "Pygame spiel"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["open_spiel", "pygame"]
 classifiers=[
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
 
@@ -28,6 +32,7 @@ classifiers=[
 spiel = [
   "open-spiel==1.3",
 ]
+download = ["gdown==5.2.2"]
 
 [project.urls]
 Homepage = "https://github.com/giogix2/pygame_spiel"
@@ -35,3 +40,10 @@ Repository = "https://github.com/giogix2/pygame_spiel"
 
 [project.scripts]
 pygame_spiel = "pygame_spiel.main:pygame_spiel"
+pygame_spiel_download = "pygame_spiel.downloads:main"
+
+[tool.setuptools.packages.find]
+include = ["pygame_spiel*"]
+
+[tool.setuptools.package-data]
+pygame_spiel = ["images/*/*.png"]
